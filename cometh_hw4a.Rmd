@@ -1,0 +1,126 @@
+---
+title: "cometh4a_mkd"
+output:
+  word_document: default
+  html_document: default
+---
+
+Q1-1)
+```{r}
+n <- 10
+x <- rnorm(n,50,10)
+y <- 50+.5*(x-50)+sqrt(1-.5^2)*rnorm(n,0,10)
+plot(c(-1.2,1.2),c(20,80), type = "n", xlab = "exams", ylab="score", main="score changes", axes=F)
+axis(side=1, at=c(-1,1), labels=c("mid","finals"))
+axis(side=2, at=seq(20,80,10))
+color <- rainbow(n)
+order.1 <- order(x)
+x <- x[order.1]
+y <- y[order.1]
+for(i in 1:n){
+  points(-1,x[i], pch=19, col = color[i]) #그림의 중간 기말고사 점수 좌표에 점을 찍음
+  points(1,y[i], pch=19, col = color[i])
+  lines(x=c(-1,-1+(2*i/(n+1))),y=c(x[i],x[i]), col = color[i]) #중간점수 좌표부터 제시된 점까지의 horizontal line segment
+  lines(x=c(-1+(2*i/(n+1)),1),y=c(y[i],y[i]), col = color[i]) #제시된점에서 중간점수와 기말점수 차이만큼의 vertical line segment
+  lines(x=c(-1+(2*i/(n+1)),-1+(2*i/(n+1))),y=c(x[i],y[i]), col = color[i]) #다시 제시된 점에서 기말점수까지의 horizaontal line segment
+}
+```
+
+Q1-2)
+```{r}
+n=30 #n=30으로 변함
+x <- rnorm(n,50,10)
+y <- 50+.5*(x-50)+sqrt(1-.5^2)*rnorm(n,0,10)
+windows(height=12, width=8)
+plot(c(-1.2,1.2),c(20,80), type = "n", xlab = "exams", ylab="score", main="score changes", axes=F)
+axis(side=1, at=c(-1,1), labels=c("mid","finals"))
+axis(side=2, at=seq(20,80,10))
+color <- rainbow(n)
+order.1 <- order(x)
+x <- x[order.1]
+y <- y[order.1]
+for(i in 1:n){
+  points(-1,x[i], pch=19, col = color[i])
+  points(1,y[i], pch=19, col = color[i])
+  lines(x=c(-1,-1+(2*i/(n+1))),y=c(x[i],x[i]), col = color[i])
+  lines(x=c(-1+(2*i/(n+1)),1),y=c(y[i],y[i]), col = color[i])
+  lines(x=c(-1+(2*i/(n+1)),-1+(2*i/(n+1))),y=c(x[i],y[i]), col = color[i])
+}
+```
+
+
+Q2-1)
+```{r}
+library(openair)
+data(mydata)
+str(mydata)
+k <- 9
+histogram <- hist(mydata$wd, breaks=seq(0,360, length=k+1))
+radius <- histogram$count/max(histogram$counts)
+radius
+windows(height=10.2, width=9)
+plot(c(-1,1),c(-1,1), type="n", axes=F, xlab="", ylab="", main="wind direction")
+s <- seq(0, 2*pi, length=361)
+par(new=T)
+plot(cos(s), sin(s), type = "l", axes = F, lty="dotted",xlab="", ylab="")
+text(0,0,"*")
+text(0,1,"N");text(1,0,"E");text(0,-1,"S"); text(-1,0,"W");
+
+for(i in 1:k){
+  lines(x=c(0,radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi)),y=c(0,radius[i]*sin((-2*pi/k)*(i-1)+1/2*pi)))
+  lines(x=c(0,radius[i]*cos((-2*pi/k)*(i)+1/2*pi)),y=c(0,radius[i]*sin(-(2*pi/k)*(i)+1/2*pi)))
+  
+  if(i<ceiling(k/4) | i>ceiling(3*k/4)){curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+    
+  }else if(i==ceiling(k/4)){curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=1*radius[i],add = T)
+                 curve(-sqrt(radius[i]^2-x^2),from=radius[i], to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+  
+  }else if (i==ceiling(3*k/4)){curve(-sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=-radius[i],add = T)
+    curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i)+1/2*pi), to=-radius[i],add = T)
+  
+  }else curve(-sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+}
+
+
+#다른 방법 circlize 활용
+windows(height=10.2, width=9)
+plot(c(-1,1),c(-1,1), type="n", axes=F, xlab="", ylab="", main="wind direction")
+s <- seq(0, 2*pi, length=361)
+par(new=T)
+plot(cos(s), sin(s), type = "l", axes = F, lty="dotted",xlab="", ylab="")
+text(0,0,"*")
+text(0,1,"N");text(1,0,"E");text(0,-1,"S"); text(-1,0,"W");
+library(circlize) #부채꼴을 그리는 함수를 쓰기 위해서 circlize library 사용
+for(i in 1:k){
+  draw.sector(90-(360/k)*(i-1),90-(360/k)*i, radius[i]) #12시 방향에서 시작해서 중심이 (0,0), r이 radius[i]인 부채꼴을 그림 
+}
+```
+
+Q2-2)
+```{r}
+k <- 18 #k가 18로 변함
+histogram <- hist(mydata$wd, breaks=seq(0,360, length=k+1))
+radius <- histogram$count/max(histogram$counts)
+windows(height=10.2, width=9)
+plot(c(-1,1),c(-1,1), type="n", axes=F, xlab="", ylab="", main="wind direction")
+s <- seq(0, 2*pi, length=361)
+par(new=T)
+plot(cos(s), sin(s), type = "l", axes = F, lty="dotted",xlab="", ylab="")
+text(0,0,"*")
+text(0,1,"N");text(1,0,"E");text(0,-1,"S"); text(-1,0,"W");
+for(i in 1:k){
+  lines(x=c(0,radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi)),y=c(0,radius[i]*sin((-2*pi/k)*(i-1)+1/2*pi)))
+  lines(x=c(0,radius[i]*cos((-2*pi/k)*(i)+1/2*pi)),y=c(0,radius[i]*sin(-(2*pi/k)*(i)+1/2*pi)))
+  
+  if(i<ceiling(k/4) | i>ceiling(3*k/4)){curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+    
+  }else if(i==ceiling(k/4)){curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=1*radius[i],add = T)
+                 curve(-sqrt(radius[i]^2-x^2),from=radius[i], to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+  
+  }else if (i==ceiling(3*k/4)){curve(-sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=-radius[i],add = T)
+    curve(sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i)+1/2*pi), to=-radius[i],add = T)
+  
+  }else curve(-sqrt(radius[i]^2-x^2),from=radius[i]*cos((-2*pi/k)*(i-1)+1/2*pi), to=radius[i]*cos((-2*pi/k)*(i)+1/2*pi),add = T)
+}
+```
+
