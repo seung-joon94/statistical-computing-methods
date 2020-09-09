@@ -1,0 +1,874 @@
+#Number in Computer
+.Machine$integer.max
+class(.Machine$integer.max)
+class(.Machine$integer.max+1)
+.Machine$double.max.exp
+.Machine$double.min.exp
+
+.Machine$double.eps
+#---------------------------------
+#예1 조합 200C100 구하기
+factorial(10)
+factorial(100)
+factorial(200)
+factorial(200)/(factorial(100)*factorial(100))
+
+C <- 1
+for (k in 1:100) C <- C*(100+k)/k
+C
+
+k <- 1:100
+prod((100+k)/k)
+
+#----------------수치벡터의 최대값
+n<-10000
+p <- 1000
+A<-matrix(runif(n*p,0,1),nrow=n,ncol=p)
+time <-proc.time()
+a <- rep(0,n)
+for(i in 1:n){
+  a[1]<-A[i,1]
+  for(j in 2:p){
+    if(a[i]<A[i,j]) a[i] <- A[i,j]
+  }
+}
+head(a)
+#----------------------------------
+#예2 계승1 100! 구하기
+N <-100
+f <-rep(1,N)
+for (n in 2:N) f[n] = n*f[n-1]
+f[N]
+
+#팩토리얼2
+N<-100
+f<- rep(NA,N)
+f[1]<-1L ##  L means integer!
+n<-2
+repeat{
+  temp<-n*f[n-1]
+  if(temp>.Machine$integer.max) break else{
+    f[n]<- temp
+    n<-n+1
+  }
+}
+f[!is.na(f)]
+#-------------------------------------------------
+#예3 피보나치1
+N<-50
+x <- rep(1,N)
+for(n in 3:N) x[n]=x[n-1]+x[n-2]
+
+#피보나치2
+fibonacci <- function(n){
+  if(n<3) temp <- 1 else{
+  temp<- fibonacci(n-1)+fibonacci(n-2)
+  }
+  return(temp)
+}
+target=function(x){
+  a<-fibonacci(x)%%100
+  return(a)
+}
+target(2000)
+fibonacci(10)
+
+fibonacci(40)
+#-------------------------------
+#선형 합동 수열 예1 Xn=21Xn-1+31(mod 100)
+x<-rep(NA,101)
+x[1]<-0
+for(i in 2:101){
+  x[i]<-(21*x[i-1]+31)%%100
+}
+x[101]
+length(unique(x[1:100]))
+
+# 선형합동수열 2
+a<-13445
+c<-0
+m<-2^31-1
+n<-1100
+x<-rep(NA,n)
+x[1]<-1234
+for( i in 2:n){
+  x[i]<-(a*x[i-1]+c)%%m
+}
+u<-x[101:1100]/m
+hist(u, main="1000 psudorandom numbers")
+abline(h=100, lty="dotted")
+
+#------------------------------------------
+#solve x=cosx
+f<- function(x)cos(x)
+x1<-0.5
+diff<-1
+while(diff>1.0e-8){
+  x2<-f(x1)
+  diff<-abs(x1-x2)        ## abs(x)=|x|
+  x1<-x2
+}
+round(x1,7)
+
+
+#예2 solve x=1-0.5x^3+x^2
+
+f<-function(x) 1-0.5*x^3+x^2
+x1<-0.5
+diff<-1
+while(diff>1.0e-8){
+  x2<-f(x1)
+  diff<-abs(x1-x2)
+  x1<-x2
+}
+round(x1,7)
+#--------------------------------------------
+##선택 정렬 selection sort
+
+x<-round(runif(10),2)
+x
+selection <- function(x){
+n<-length(x)
+for(i in 1:(n-1)){
+  for(j in (i+1):n){
+    if(x[i]>x[j]){
+      temp<-x[i]
+      x[i]<-x[j]
+      x[j]<-temp
+     }
+   }
+  }
+ return(x)
+}
+selection(x)
+
+#----------------------------------
+#bubble sort
+
+round(runif(10),2)
+x
+bubble<-function(x){
+  n<-length(x)
+  for(i in 1:(n-1)){
+    for(j in 1:(n-i)){
+      if(x[j]>x[j+1]){
+        temp<-x[j]
+        x[j]<-x[j+1]
+        x[j+1]<-temp
+      }
+    }
+  }
+  return(x)
+}  
+bubble(x)
+
+
+#빠른 정렬---------------------
+
+
+quick<-function(x){
+  if(length(x)<=1) return(x)
+  pivot<-x[1] #키값
+  therest<-x[-1]
+  sv1<-therest[therest<pivot]
+  sv2<-therest[therest>=pivot]
+  sv1<-quick(sv1)
+  sv2<-quick(sv2)
+  return(c(sv1,pivot,sv2))
+}
+
+quick(x)
+
+library(microbenchmark)  
+x<-runif(1000)  
+microbenchmark(selection(x),bubble(x),quick(x), times=100L)
+  
+
+
+###선형대수
+#-----------------선형 연립 방정식
+#U+=(U;c)
+
+A<-matrix(c(2,-5,4,1,-2,1,1,-4,6), byrow=T, nrow=3, ncol=3)
+b <- matrix(c(-3,5,10),nrow=3, ncol=1)
+p=nrow(A)
+U.pls <- cbind(A,b)
+for (i in 1:p){
+  for(j in (i+1):(p+1)) U.pls[i,j] <- U.pls[i,j]/U.pls[i,i]
+  U.pls[i,i] <- 1
+  if(i<p){
+    for (k in (i+1):p) U.pls[k,] <- U.pls[k,]-U.pls[k,i]*U.pls[i,]
+  }
+}
+x <- rep(0,p)
+for(i in p:1){
+  if(i<p){
+    temp <- 0
+    for(j in (i+1):p) temp<-temp+U.pls[i,j]*x[j]
+    x[i] <- U.pls[i,p+1]-temp
+  }
+  else x[i] <- U.pls[i,p+1]
+}
+x
+solve(A,b)
+
+#-------------역행렬 연산
+#선형연립방정식 활용
+
+#solve활용
+solve(A,diag(rep(1,nrow(A))))
+
+
+#-----------eigen values and vectors
+
+A <- matrix(c(1,0.4,0.2,0.4,1,0.4,0.2,0.4,1), byrow=T, nrow=3)
+x0=as.vector(c(1,0,0))
+diff <- 1
+eps <- 0.0001
+count <- 0
+while(diff>eps){
+  x1<-A%*%x0
+  lambda <- sqrt(sum(x1*x1)/sum(x0*x0))
+  x1 <- x1/sqrt(sum(x1*x1))
+  diff <- sqrt(sum((x1-x0)*(x1-x0)))
+  x0 <- x1
+  count <- count+1
+}
+round(x0,4)
+round(lambda, 4)
+count
+
+lapply(eigen(A),round,4)
+
+
+#-------------------PCA
+
+data(USArrests)
+str(USArrests)
+glance(USArrests)
+library(dplyr)
+Z <- scale(USArrests)
+A <- (t(Z)%*%Z)/(nrow(Z)-1)
+EV <- eigen(A)
+EV$values
+EV$vectors
+
+
+##prcomp활용
+prin <- prcomp(Z)
+names(prin)
+prin$sdev^2
+prin$rotation
+
+
+#4장
+
+#수치 미분
+
+#예1 sinx f'(x) at x=0.5
+
+f=function(x) sin(x)
+f.1=function(x,h) (f(x+h)-f(x-h))/(2*h)
+h <- 0.1
+d.1 <- f.1(0.5,h)
+d.2 <- f.1(0.5,h/2)
+extrapolation <- (4*d.2-d.1)/3
+
+d.1
+d.2
+extrapolation
+cos(0.5)
+
+##수치적분
+
+#예1 N(0,1)의 확률 (0,1)까지의 pdf를 계산해보자
+f <- function(x) 1/sqrt(2*pi)*exp(-x^2/2)
+simpson <- function(f,a,b,n){
+  y <- f(a+(b-a)/(2*n)*seq(0,2*n,1))
+  temp.1 <- 0; temp.2 <- 0
+  for(i in seq(1,2*n-1,2)) temp.1 <- temp.1+y[i+1]
+  for(i in seq(2,2*(n-1),2)) temp.2 <- temp.2 +y[i+1]
+  temp <- f(a)+2*temp.2+4*temp.1+f(b)
+  s <- (b-a)/n*temp/6
+  return(s)
+}
+n <- 10
+simpson(f,0,1,n)
+pnorm(1)-pnorm(0)
+
+
+#CH5 비선형 방정식과 최적화
+
+#반분법
+
+bisection <- function(h,a,b,epsilon){
+  y0 <- h(a)
+  y1 <- h(b)
+  if (y0*y1>0) return("incorrect specification")
+  else{
+    while(b-a>epsilon){
+      z <- (a+b)/2
+      y <- h(z)
+      if(y*y1<0){
+        a <- z; y0 <- y
+      }
+      else{
+        b <- z; y1 <- y
+      }
+    }
+    return((a+b)/2)
+  }
+}
+h <- function(z)z^5-8*z^2+3
+bisection(h,0,1.0,0.5e-4)
+
+
+#뉴튼 라프슨
+newton <- function(f,g,z0,epsilon){
+  diff <- 1
+  while(abs(diff)>epsilon){
+    if(abs(g(z0))<epsilon) return("incorecct specification")
+    diff <- -f(z0)/g(z0)
+    z0 <- z0+diff
+  }
+  return(z0)
+}
+h <- function(z)z^5-8*z^2+3
+h.1 <- function(z) 5*z^4-16*z
+z0 <- 0.4
+newton(h,h.1,z0,0.5e-4)
+
+
+#최적화 시컨트방법 <- 할선
+H <- function(z) z^6/6 -8*z^3/3 + 3*z
+secant.1 <- function(f,x.0,x.1,h,eps){
+  g <- function(f,x,h){
+    d1 <- (f(x+h)-f(x-h))/(2*h)
+    d2 <- (f(x+h/2)-f(x-h)/2)/h
+    return(4/3*d2-d1/3)
+  }
+  temp <- g(f,x.1,h)/(g(f,x.1,h)-g(f,x.0,h))*(x.1-x.0)
+  while(abs(temp)>eps){
+    x <- x.1-temp
+    x.0 <- x.1
+    x.1 <- x
+    temp <- g(f,x.1,h)/(g(f,x.1,h)-g(f,x.0,h))*(x.1-x.0)
+  }
+  return(x)
+}
+z <- secant.1(H,0.1,0.5e-4,1.e-4)
+round(z,4)
+
+#r함수 nlm 활용
+
+
+#최적화2 황금분할 탐색\
+
+golden.section <- function(f,x.1,x.4,eps){
+  alpha <- (3-sqrt(5))/2
+  delta <- x.4-x.1
+  while(abs(delta)>eps){
+    x2 <- (1-alpha)*x.1+alpha*x.4
+    x3 <- alpha*x.1+(1-alpha)*x.4
+    if(f(x.2)>f(x.3)){
+      x.4 <- x.3
+      x.3 <- x.2
+      x.2 <- (1-alpha)*x.1+alpha*x.4
+    }
+    else{
+      x.1 <- x.2
+      x.2 <- x.3
+      x.3 <- alpha*x.1+(1-alpha)*x.4
+    }
+    delta <- x.4-x.1
+  }
+  return((x.1+x.4)/2)
+}
+
+
+
+#경사하강 gradient decent
+#예1
+f <- function(x) x^4-3*x^3+2
+g <- function(x) 4*x^3-9*x^2
+gamma <- 0.001
+x <- 1
+diff <- 1
+iter <- 1
+while(diff>1e-6){
+  x.new <- x-gamma*g(x)
+  diff <- abs(x.new-x)
+  x <- x.new
+  iter <- iter+1
+}
+iter
+x
+
+#예2
+f <- function(x) (1-x[1])^2+100*(x[2]-x[1^2])^2
+g <- function(x){
+  d1 <- -2*(1-x[1])-400*(x[2]-x[1]^2)*x[1]
+  d2 <- 200*(x[2]-x[1]^2)
+  c(d1,d2)
+}
+gamma <- 0.001
+x <- c(-0.5,0.5)
+diff <- 1
+iter <- 0
+while(diff>1e-6){
+  x.new <- x-gamma*g(x)
+  diff <- sqrt(sum((x.new-x)*(x.new-x)))
+  x <- x.new
+  iter <- iter+1
+}
+iter
+x
+
+
+#다변수 최적화
+
+x <- c(1,1,2,2,3,4,4,5,5,8,8,8,8,11,11,12,12,15,17,22,23)
+n <- length(x)
+log.like <- function(theta){
+  temp1 <- 0;temp2 <- 0
+  for(i in 1:n){
+    temp1 <- temp1+log(x[i])
+    temp2 <- temp2+x[i]^theta[1]
+  }
+  return(n*log(theta[1]/theta[2])+(theta[1]-1)*temp1-temp2/theta[2])
+}
+log.like.1 <- function(theta){
+  temp1 <- 0; temp2 <- 0
+  for(i in 1:n){
+    temp1 <- temp1+log(x[i])
+    temp2 <- temp2+x[i]^theta[1]*log(x[i])
+  }
+  return(n/theta[1]+temp1-temp2/theta[2])
+}
+
+log.like.2 <- function(theta){
+  temp2 <- 0
+  for(i in 1:n) temp2 <- temp2+x[i]^theta[1]
+  return(-n/theta[2]+1/theta[2]^2*temp2)
+}
+log.like.11 <- function(theta){
+  temp2 <- 0
+  for(i in 1:n) temp2 <- temp2+x[i]^theta[1]*(log(x[i]))^2
+  return(-n/theta[1]^2-1/theta[2]*temp2)
+}
+log.like.22 <- function(theta){
+  temp2 <- 0
+  for(i in 1:n) temp2 <- temp2+x[i]^theta[1]
+  return(n/theta[2]^2-2/theta[2]^3*temp2)
+}
+log.like.12 <- function(theta){
+  temp2 <- 0
+  for(i in 1:n) temp2 <- temp2+x[i]^theta[1]*log(x[i])
+  return(1/theta[2]^2*temp2)
+}
+
+theta.0 <- c(1,mean(x))
+diff <- 1
+while(diff>1e-4){
+  h <- matrix(c(log.like.1(theta.0), log.like.2(theta.0)),2,1)
+  G <- matrix(c(log.like.11(theta.0), log.like.12(theta.0),log.like.12(theta.0),log.like.22(theta.0)),2,2)
+  theta.1 <- theta.0 - solve(G,h)
+  diff <- sum((theta.1-theta.0)^2)
+  theta.0 <- theta.1
+}
+theta.1  
+
+##6장 몬테카를로
+
+# 균일분포 n개 선택 시max값들의 분포
+n <- 10
+N <- 1000
+M <- rep(0,N)
+for(i in 1:N){
+  u <- runif(n)
+  M[i] <- max(u)
+}
+hist(M,xlim=c(0,1),main="Max of 10 unifs")
+
+#예2 U~unif(0,1) X=cos(2piU) X의 분포를 구하자
+N <- 1000
+theta <- runif(N)*2*pi
+pos.x <- cos(theta)
+hist(pos.x, xlim=c(-1,1), main="x-pisition on the circle", freq=F) #arcsign분포
+
+#베르누이 분포와 이항분포
+#예1 gambling
+p <- 0.4
+k <- 3
+n.repeat <- 1000 #1000번의 시행
+plays <- rep(0,n.repeat) 
+for(r in 1:n.repeat){
+  balance <- k #초기치 잔액
+  trial <- 0
+  while(balance>0){ #잔액이 0보다 크면 trial 가능 아니면 X
+    trial <- trial+1
+    balance <- balance+2*rbinom(1,1,p)-1 #p=1 승리 k+1/p=0 k-1 
+  }
+  plays[r] <- trial
+}
+mean(plays)
+table(plays)
+hist(plays, nclass=20, xlab="N",main="number of plays")
+
+
+#예2 홀짝
+n <- 100
+p <- 0.25
+N <- 10000
+s <- rbinom(N,n,p)
+sum(s%%2)/N
+
+#음이항분포
+
+k <- 3
+p <- 0.5
+N <- 1000
+random.T <- rep(0,N)
+for(i in 1:N){
+  count <- 0
+  t <- 0
+  while(count<k) ifelse(rbinom(1,1,p)>0.5, count <- count+1,t <- t+1)
+  random.T[i] <- t
+}
+barplot(table(random.T), main="Neg Binomial(k=3,p=0.5)")
+
+
+#지수분포
+u <- runif(10000)
+lambda <- 2
+x <- -1/lambda*log(1-u)
+hist(x,xlim=c(0,4),freq=FALSE, ylim=c(0,2.2),nclass=20,main="exp(2)dst")
+par(new=TRUE)
+z <- seq(0,4,0.1)
+plot(dexp(z,rate=2)~z,type='l')
+
+
+#포아송 분포
+
+lambda <- 2; N <- 1000; z <- rep(0,N)
+for(i in 1:N){
+  time <- 0
+  count <- 0
+  while(time<1){
+    time <- time+rexp(1,lambda)
+    count <- count+1
+  }
+z[i] <- count-1
+}
+table(z)/N
+round(dpois(0:9,lambda=2),3)
+
+#정규분포
+w <- rexp(1000,0.5)
+theta <- runif(1000,0,2*pi)
+x <- sqrt(w)*cos(theta)
+y <- sqrt(w)*sin(theta)
+plot(x,y)
+par(mfrow=c(1,2))
+hist(x);hist(y)
+
+#이변량 정규 분포
+#예1
+u <- rnorm(10000)
+v <- rnorm(10000)
+rho <- 0.5
+x <- u
+y <- rho*u+sqrt(1-rho^2)*v
+sum((x>0)&(y>0))
+
+#예2
+u <- rnorm(10000)
+v <- rnorm(10000)
+rho <- 0.5
+x <- u
+y <- rho*u+sqrt(1-rho^2)*v
+sum((x>0)&(y>0))/sum(x>0)
+
+#감마 분포
+#응용1
+x <- rep(0,1000)
+for(i in 1:1000){
+  sum1 <- 0
+  for(j in 1:10) sum1 <- rexp(1,2)
+  x[i] <- sum1
+}
+hist(x, nclass=20,freq=FALSE, xlim=c(0,12), ylim=c(0,0.3), main = "total waiting time")
+par(new=TRUE)
+x <- seq(0,12,0.1)
+y <- dgamma(x,shape=10, rate=2)
+plot(x,y, type='l', lty="dotted",col='blue',xlim=c(0,12),ylim=c(0,0.3), xlab="",ylab="")
+
+#7장  통계 그래프
+
+color <- c("#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF","#FF00FF")
+pie(rep(1,6), col=color, labels=color)
+par(new=T)
+pie(rep(1,1), col="white", radius = 0.5, labels="")
+#R의 컬러체계
+windows(height=2.5, width=8); n <- 10
+barplot(rep(1,n), col=rainbow(n, alpha=1), axes=FALSE, main="rainbow colors")
+barplot(rep(1,n), col=heat.colors(n, alpha=1), axes=FALSE, main="heat colors")
+barplot(rep(1,n), col=terrain.colors(n, alpha=1), axes=FALSE, main="terrain colors")
+barplot(rep(1,n), col=topo.colors(n, alpha=1), axes=FALSE, main="topo colors")
+barplot(rep(1,n), col=cm.colors(n, alpha=1), axes=FALSE, main="cyan-magenta colors")
+
+#Rcolor brewer
+
+library(RColorBrewer)
+display.brewer.all(type="seq")
+
+
+windows(height=2.5, width=8); n <- 9
+barplot(rep(1,n), col=brewer.pal(n,"Reds"), axes=FALSE, main="Brewer Reds")
+barplot(rep(1,n), col=brewer.pal(n,"Greens"), axes=FALSE, main="Brewer Greens")
+
+#R그래프의 기본 요소
+
+plot(x=c(0,10),y=c(0,10),type="n",xlab="x",ylab="y",main="points and segments") ## type이 n=> 투명한 점.
+points(runif(1,5,10),runif(1,5,10),pch=15,col="red") #pch--> 포인트의 모양/
+segments(runif(1,0,5),runif(1,0,5),runif(1,0,5),runif(1,0,5),col="red") #선분 #시작점과 끝점을 제시/알아서 찾음
+lines(x=c(runif(1,0,5),runif(1,0,5)),y=c(runif(1,5,10),runif(1,5,10)),col="blue") #x,y벡터가 있고 대응쌍 제시 필
+
+plot(x=c(0,10),y=c(0,10),type="n",xlab="x",ylab="y",main="rectangles")
+rect(4,5,5,6,col="royalblue",border="royalblue")
+rect(7,9,9,10,col="royalblue",border="royalblue")
+rect(1,2,3,4,col="royalblue",border="royalblue")
+
+#다각형
+plot(x=c(0,10),y=c(0,10),type="n",xlab="x",ylab="y",main="polygons")
+polygon(runif(3,0,5),runif(3,0,5),col="royalblue",border="royalblue") #x벡터와 y벡터를 제공
+polygon(runif(3,5,10),runif(3,5,10),col="royalblue",border="royalblue")
+
+#convex hull -->컨벡스가 되게+ 모든 점들을 다 포함하게 
+plot(x=c(0,10),y=c(0,10),type="n",xlab="x",ylab="y",main="convex hull")
+df <- matrix(runif(20,0,10),10,2)
+points(df)
+pts <- chull(df); polygon(df[pts,],col="#55555555",border="#55555555") #숫자가 8자리/6자리+2자리 지정시 투명도
+
+#Boxplot
+n <- 1000; x1 <- rnorm(n,100,15); x2 <- rgamma(n,10,2)
+par(mfrow=c(1,2))
+boxplot(x1, ylab="1000 normal numbers")
+boxplot(x2, ylab="1000 gamma numbers") ##gamma가 좌우 비대칭이라 outlier값으로 큰 값이 많이 찍힘
+
+boxp <- function(x,ylab){
+  five <- fivenum(x)
+  quart <- five[2:4]
+  fence.1 <- quart[1] - 3*(quart[2]-quart[1])
+  fence.2 <- quart[3] + 3*(quart[3]-quart[2])
+  fence.1.adj <- min(x[x > fence.1])
+  fence.2.adj <- max(x[x < fence.2])
+  y.range <- max(x)-min(x)
+  y.lim <- c(max(x)+0.1*y.range,min(x)-0.1*y.range)
+  outlier <- x[x < fence.1 | x > fence.2]
+  x.1 <- c(0,0)
+  par(xaxt="n")
+  plot(y.lim ~ x.1, type="n", xlim=c(-2,2), xlab="", ylab=ylab)
+  lines(c(-1,1),c(quart[3],quart[3]))
+  lines(c(-1,1),c(quart[2],quart[2]),lwd=3)
+  lines(c(-1,1),c(quart[1],quart[1]))
+  lines(c(-1,-1),c(quart[1],quart[3]))
+  lines(c(1,1),c(quart[1],quart[3]))
+  lines(c(0,0),c(quart[3],fence.2.adj))
+  lines(c(0,0),c(quart[1],fence.1.adj))
+  for (i in 1:length(outlier)) points(0,outlier[i],cex=1)
+}
+
+#image plot
+A <- matrix(sample(1:12), 4, 3)
+trans <- function(A) {
+  A.1 <- t(A)
+  q <- ncol(A.1)
+  A.1 <- A.1[,q:1]
+  return(A.1)
+}
+par(xaxt="n", yaxt="n")
+image(trans(A), asp=nrow(A)/ncol(A), axes=FALSE)
+
+#상관 행렬의 시각화
+p <- 10
+R <- matrix(0,p,p)
+rho <- -0.5
+for (i in 1:p) {
+  for (j in 1:p) {
+    R[i, j] <- rho^abs(i-j)
+  }
+}
+round(R, 3)
+library(RColorBrewer)
+image(trans(R), asp=nrow(R)/ncol(R), axes=FALSE, col=brewer.pal(8,"RdBu")) 
+
+#예 2. 이변량 정규분포의 밀도
+
+n <- 50
+rho <- 0.5 #상관 계수 0.5인 이변량
+M <- matrix(0,1+2*n,1+2*n)
+for (i in 1:(1+2*n)) {
+  for (j in 1:(1+2*n)) {
+    x <- (n+1-i)/(n/2.5)
+    y <- (j-n-1)/(n/2.5)
+    M[i,j] <- 1/(2*pi*sqrt(1-rho^2))*exp(-(x^2+y^2-2*rho*x*y)/2/(1-rho^2))
+  }
+}
+image(trans(M), asp=nrow(M)/ncol(M), axes=FALSE, col=topo.colors(1+2*n)) 
+
+#symbols
+require(stats); require(grDevices)
+x <- 1:10; y <- sort(10*runif(10)); z <- runif(10)
+symbols(x, y, rectangles=cbind(rep(1,10),z), inches = .25, fg = 1:10)
+symbols(x, y, thermometers = cbind(.5, 1, z), inches = .25, fg = 1:10)
+symbols(x, y, boxplots=cbind(0.5,1,1,1,z), inches = .25, fg = 1:10)
+
+#hexagonal binning-->농담의 조절을 가지고 자료점의 밀도를 표현함
+#scatter plot =-> n이 너무 크면 활용이 어렵다. 
+
+library(hexbin)
+data(NHANES)
+str(NHANES)
+plot(BMI ~ Weight, data=NHANES, main="NHANES")
+hexbinplot(BMI ~ Weight, xlim=c(0,210), colorkey=F, data=NHANES, main="NHANES")
+hexbinplot(BMI ~ Weight, xlim=c(0,210), colorkey=F, xbins=100, data=NHANES,
+           main="NHANES")
+NHANES$Race <- factor(NHANES$Race)
+levels(NHANES$Race) <- c("Race 1", "Race 2")
+hexbinplot(BMI ~ Weight | Race, colorkey=F, xbins=100, xlim=c(0,210), data=NHANES,
+           main="NHANES")
+hexbinplot(BMI ~ Weight | Race, colorkey=F, xbins=50, xlim=c(0,210), style =
+             "nested.centroids", data=NHANES, main="NHANES")
+
+#CH8 움직이는 그림
+
+n.cycle <- 36; theta <- c(0,pi/4)
+x <- cos(theta); y <- sin(theta)
+circle <- seq(0,pi/4,pi/32)
+x.circle <- cos(circle); y.circle <- sin(circle)
+par(mar=rep(6,4),bg="darkblue",col.axis="white", col.lab="white",fg="white",lwd=2)
+color <- c("cyan","yellow")
+plot(x,y,type="n",xlim=c(-1.2,1.2),ylim=c(-1.2,1.2))
+text(x,y,"*",col=color,cex=4)
+par(new=T)
+plot(x.circle,y.circle,xlim=c(-1.2,1.2),ylim=c(-1.2,1.2),xlab="",ylab="",col="magenta")
+alpha <- 2*pi/n.cycle
+for (r in 1:(2*n.cycle)){
+  x <- cos(theta+alpha*r)
+  y <- sin(theta+alpha*r)
+  x.circle <- cos(circle+alpha*r)
+  y.circle <- sin(circle+alpha*r)
+  plot(x,y,type="n",xlim=c(-1.2,1.2), ylim=c(-1.2,1.2))
+  text(x,y,"*",col=color,cex=4)
+  par(new=T)
+  plot(x.circle,y.circle,xlim=c(-1.2,1.2),ylim=c(-1.2,1.2),xlab="",ylab="",col="magenta")
+  Sys.sleep(0.2)
+}
+
+#brownian motion
+library(animation)
+windows()
+ani.options(interval = 0.01, nmax = 100)
+brownian.motion(n = 10, pch = 20, cex = 2, col = "red", bg = "red",
+                main = "Demonstration of Brownian Motion")
+
+#Quincunx
+library(animation)
+windows()
+balls <- 1000
+layers <- 10
+ani.options(nmax = balls + layers -2)
+quincunx(balls, layers, pch.layers = 2,
+         pch.balls = 19, col.balls = sample(colors(), balls, TRUE), cex.balls = 2)
+
+#CH9 재표집 방법 
+
+#resampling
+
+x <- c(15,26,10,9,15,20,18,11,8,20,7,9,10,11,11,10,12,17,11,10)
+y <- c(95,71,83,91,102,87,93,100,104,94,113,96,83,84,102,100,105,121,86,100)
+r <- cor(x,y)
+r
+n.repeat <- 10000
+r.random <- rep(0,n.repeat)
+count <- 0
+for(k in 1:n.repeat){
+  y.star <- sample(y)
+  r.star <- cor(x,y.star)
+  r.random[k] <- r.star
+  if(r.star <= r) count <- count+1 #? 대립 가설이 rho<0으로 설정했을시.
+}
+hist(r.random,xlim=c(-1,1),nclass=20)
+text(r,0,"|",col="red",cex=2) #관측된 값
+p.value <- count/n.repeat
+p.value # 1000번 중 r보다 작은 r*의 비율
+
+
+#bootstrap
+
+x <- c(15,26,10,9,15,20,18,11,8,20,7,9,10,11,11,10,12,17,11,10)
+y <- c(95,71,83,91,102,87,93,100,104,94,113,96,83,84,102,100,105,121,86,100)
+r <- cor(x,y); r
+n.repeat <- 1000
+r.random <- rep(0,n.repeat)
+n <- length(x)
+r.boot <- rep(0,n.repeat)
+for (k in 1:n.repeat){
+  obs.star <- sample(1:n,replace=T)
+  x.star <- x[obs.star]
+  y.star <- y[obs.star]
+  r.star <- cor(x.star,y.star)
+  r.boot[k] <- r.star
+}
+hist(r.boot,xlim=c(-1,1),nclass=20,xlab="r.star")
+conf.1 <- quantile(r.boot, p=0.025)
+conf.2 <- quantile(r.boot, p=0.975)
+text(conf.1,0,"|",col="red",cex=2)
+text(conf.2,0,"|",col="red",cex=2)
+round(c(conf.1,conf.2),2)
+
+#이원교차표
+treat <- c(rep(1,83),rep(1,27),rep(2,23),rep(2,13))
+outcome <- c(rep(1,83),rep(2,27),rep(1,23),rep(2,13))
+addmargins(table(treat,outcome))
+row <- apply(table(treat,outcome),1,sum)
+round(diag(1/row) %*% table(treat,outcome)*100,1)
+chisq.test(table(treat,outcome))
+n.repeat <- 1000
+cell.rand <- rep(0,n.repeat)
+count <- 0
+for (k in 1:n.repeat){
+  outcome.star <- sample(outcome)
+  cell22 <- table(treat,outcome.star)[2,2]
+  cell.rand[k] <- cell22
+  if (cell22 >= 13) count <- count+1
+}
+p.value <- count/n.repeat
+p.value
+
+#붓스트랩 신뢰구간
+n.repeat <- 1000; logpsi.boot <- rep(0,n.repeat)
+n <- length(treat)
+T <- table(treat,outcome)
+logpsi <- log((T[2,2]*T[1,1])/(T[1,2]*T[2,1]))
+round(logpsi,2)
+for (k in 1:n.repeat){
+  obs.star <- sample(1:n,replace=TRUE)
+  treat.star <- treat[obs.star]
+  outcome.star <- outcome[obs.star]
+  T <- table(treat.star,outcome.star)
+  log.psi <- log((T[2,2]*T[1,1])/(T[1,2]*T[2,1]))
+  logpsi.boot[k] <- log.psi
+}
+hist(logpsi.boot,nclass=20,xlab="logpsi.star",xlim=c(-2,2),main="Bootstrap
+Distribution")
+conf.1 <- quantile(logpsi.boot, p=0.025)
+conf.2 <- quantile(logpsi.boot, p=0.975)
+round(c(conf.1,conf.2),2)
+text(conf.1,0,"|",col="red",cex=2)
+text(conf.2,0,"|",col="red",cex=2)
+
+
+
+
