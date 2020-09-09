@@ -1,0 +1,80 @@
+#` e만들기
+emake <- function(){
+  e <- 0
+  for (n in 0:3000){
+    e <- e+ 1/(factorial(n))
+  }
+  return(e)
+}
+
+e1=emake()
+e1
+e2=exp(1)
+(e1-e2)
+```
+
+####임의로 만들어낸 함수는 2.718281828459046를 e 값으로 출력한다 또 이 값과 exp(1)을 통해 얻어진 값은 소수점 아래 16번째 자리에서 달라진다. 즉 소수점 아래 15자리까지 exp(1)의 출력값과 같다 
+
+```{r}
+#2. ln(x) 만들기
+options(digits=16)
+makelog=function(x){
+  z<-log(x+1, base=emake()) #1번에서 만든 emake 함수를 활용해 z에 log(x+1)값 부여
+  return(z)
+}
+makelog(0.1); log(1.1); makelog(0.1)-log(1.1)
+makelog(-0.1);log(0.9); makelog(-0.1)-log(0.9)
+
+makelog2 <- function(x) {
+  z <- sum((-1)^((1:10) + 1) * x^(1:10) / 1:10)
+  return(z)
+}
+cbind(makelog2(0.1), log(1.1))
+cbind(makelog2(-0.1), log(0.9))
+
+```
+####1번 문제에서 만들어낸 emake함수를 통해 makelog라는 log(x+1)값을 출력하는 함수를 만들어낸다. 이떄 이 값은 x=0.1과 -0.1에서 각각  0.09531017980432493, -0.1053605156578263 값을 출력하며 이 함수를 바탕으로 만들어낸 값과 log()를 통해 출력한 값은 소숫점아래 16자리까지 일치한다.
+
+```{r}
+#3 fibonacci1
+N<-10000 #만 번 째까지니까N을 10000으로 설정 
+x <- rep(1,N) #x 벡터에 1을 1만개 부여
+for(n in 3:N) {x[n]=x[n-1]%%100+x[n-2]%%100 
+#피보나치를 실행하되 그냥 실시후에 모듈로를 수행하면 Inf값에 모듈로를 돌리는 상황이 발생함 
+#우리에게 중요한 것은 뒷 두자리이므로 미리 모듈로 시행
+if(x[n]<100) { x[n]} #만약 미리 모듈로를 한 값이 100이하면 그대로 출력
+else x[n]<- x[n]%%100 #그렇지 않을 시 이를 다시 모듈로 수행한 후에 출력
+}
+hist(x[1:10000],xlab="remainder", main='hist of fibonacci mod100', col='orange', ylim =c(0,800))
+```
+
+
+```{r}
+#4 factorial(100) & factorial(200)
+is.numeric(factorial(100))
+is.numeric(factorial(200))#factorial 200이 integer인지 numeric인지를 확인
+
+N=200 #factorial(200)이 Inf임을 알기 때문에 N을 200으로 설정
+foundx= function(x){for (x in 1:N)
+    if( factorial(x)>.Machine$double.xmax) break else
+      #numeric의 최대값보다 factorial(x)가 더 커지면 종료 후 x 값를 반환
+{temp <- x}
+return(temp)
+}
+foundx(x) #found(x)함수로 170!이 inf로 표시 되지 않는 최대값임을 알아냄  
+factorial(foundx(x));factorial(foundx(x)+1) #그 최대값과 171!이 Inf로 나오는지 확인
+```
+
+#### R은 인식할 수 있는 최대 실수값 보다 큰 수를 Inf로 인식하므로 조건문을 통해 팩토리얼 값이 그 값보다 커지는 값에서 루프를 끊고 x 값을 반환한다. 그때의 x 값이 170이며 factorial(170)은 7.257415615308882e+306값으로 출력되지만 factorial(171)은 Inf로 출력됨을 알 수 있다.   
+
+
+```{r}
+#5-1
+k<-1:1000
+x=prod((1000+k)/k)
+x*0.5^2000
+N=1000
+C=1
+for(i in 1:N) C <- C*(1000+i)/i*0.5^2
+C
+```
